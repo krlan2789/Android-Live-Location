@@ -6,10 +6,14 @@ import arrow.core.Either
 import com.singularity_code.live_location.util.ErrorMessage
 import com.singularity_code.live_location.util.defaultOkhttp
 import com.singularity_code.live_location.util.websocket
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.WebSocket
 
 
 interface Repository {
@@ -32,25 +36,26 @@ class WebSocketRepository(
     override val context: Context
 ) : Repository {
 
-    private val webSocket by lazy {
-        websocket(
-            context = context,
-            apiURL = url,
-            headers = headers
-        )
-    }
+    private lateinit var webSocket: WebSocket
 
     private var socketPendingJob: Job? = null
 
     override fun openConnection() {
         socketPendingJob?.cancel()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            websocket(
+                context = context,
+                apiURL = url,
+                headers = headers
+            ).collect{
+                webSocket = it
+            }
+        }
     }
 
     override fun closeConnection() {
-        if (!webSocket.close(1000, "normal closure")) {
-            Log.d("TAG", "closeConnection: Normal closure not working, nuke the web socket.")
-            webSocket.cancel()
-        }
+        webSocket.close(1000, "normal closure")
     }
 
     override suspend fun sendData(data: String): Either<ErrorMessage, String> {

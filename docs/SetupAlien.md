@@ -6,14 +6,16 @@ You can see the example here [JavaAlienActivity](..%2Fapp%2Fsrc%2Fmain%2Fjava%2F
 # Note
 If you are using Unity project or else without google dependency resolver, you'll probably need to add these dependencies:
 ```java
-com.google.android.gms:play-services-location:21.0.1
-com.google.android.gms:play-services-maps:18.1.0
-com.squareup.retrofit2:retrofit:2.9.0
-com.squareup.retrofit2:converter-gson:2.9.0
-com.squareup.okhttp3:okhttp:4.10.0
-org.jetbrains.kotlin:kotlin-stdlib:1.8.22
-org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.0
-io.arrow-kt:arrow-core-jvm:1.2.0-RC
+implementation "com.google.android.gms:play-services-location:21.0.1"
+implementation "com.google.android.gms:play-services-maps:18.1.0"
+implementation "com.squareup.retrofit2:retrofit:2.9.0"
+implementation "com.squareup.retrofit2:converter-gson:2.9.0"
+implementation "com.squareup.okhttp3:okhttp:4.10.0"
+implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.0"
+implementation "io.arrow-kt:arrow-core-jvm:1.2.0-RC" 
+debugImplementation "com.github.chuckerteam.chucker:library:4.0.0"
+releaseImplementation "com.github.chuckerteam.chucker:library-no-op:4.0.0"
 ```
 # 1. Build the Jar and Import File
 If you are more convenient using `jar` or `aar` file, follow this step:

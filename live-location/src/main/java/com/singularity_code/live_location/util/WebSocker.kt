@@ -36,13 +36,13 @@ fun websocket(
 
     val listener = object : WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
-            Log.d("TAG", "WebSocket: Opened")
+            Log.d("WSS_TAG", "WebSocket: Opened")
             super.onOpen(webSocket, response)
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             super.onFailure(webSocket, t, response)
-            Log.d("TAG", "WebSocket: Failed $t")
+            Log.d("WSS_TAG", "WebSocket: Failed $t")
 
             // IMPORTANT trigger recreate socket
             val errorLog = hashMapOf(
@@ -56,12 +56,12 @@ fun websocket(
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-            Log.d("TAG", "WebSocket: Closed")
+            Log.d("WSS_TAG", "WebSocket: Closed")
             super.onClosed(webSocket, code, reason)
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
-            Log.d("TAG", "WebSocket: Message $text")
+            Log.d("WSS_TAG", "WebSocket: Message $text")
             super.onMessage(webSocket, text)
         }
     }

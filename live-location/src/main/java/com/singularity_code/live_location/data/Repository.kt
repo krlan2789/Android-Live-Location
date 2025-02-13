@@ -6,6 +6,7 @@ import arrow.core.Either
 import com.singularity_code.live_location.util.ErrorMessage
 import com.singularity_code.live_location.util.defaultOkhttp
 import com.singularity_code.live_location.util.isConnected
+import com.singularity_code.live_location.util.alwaysFail
 import com.singularity_code.live_location.util.websocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,34 +38,34 @@ class WebSocketRepository(
     override val context: Context
 ) : Repository {
 
-    private lateinit var webSocket: WebSocket
+    private var webSocket: WebSocket? = null
 
     private var socketPendingJob: Job? = null
-//    private var isConnected: Boolean = false
 
     override fun openConnection() {
         socketPendingJob?.cancel()
 
+        if (url.isEmpty() || webSocket?.alwaysFail == true) return
         CoroutineScope(Dispatchers.IO).launch {
             websocket(
                 context = context,
                 apiURL = url,
                 headers = headers
-            ).collect{
+            )?.collect{
                 webSocket = it
             }
         }
     }
 
     override fun closeConnection() {
-        webSocket.close(1000, "normal closure")
+        if (webSocket?.isConnected == true && url.isNotEmpty()) webSocket!!.close(1000, "normal closure")
     }
 
     override suspend fun sendData(data: String): Either<ErrorMessage, String> {
         return kotlin.runCatching {
-            if (!webSocket.isConnected) openConnection()
-
-            val result = webSocket.send(data)
+            if (url.isEmpty() || webSocket == null || webSocket?.alwaysFail == true) return Either.Left("URL not set")
+            if (webSocket!!.isConnected) openConnection()
+            val result = webSocket!!.send(data)
             Either.Right(result.toString())
         }.getOrElse {
             Either.Left(it.message ?: it.cause?.message ?: "unknown error")
@@ -90,6 +91,7 @@ class RestfulRepository(
     override suspend fun sendData(
         data: String
     ): Either<ErrorMessage, String> {
+        if (url.isEmpty()) return Either.Left("URL not set")
         val requestBody: RequestBody = RequestBody.create("text/plain".toMediaTypeOrNull(), data)
 
         val request: Request = Request.Builder()
@@ -103,11 +105,15 @@ class RestfulRepository(
             .build()
 
         return runCatching {
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                Either.Right(response.body?.string() ?: "nothing to show")
-            } else {
-                Either.Left(response.message)
+            if (url.isEmpty()) Either.Left("URL not set")
+            else
+            {
+                val response = okHttpClient.newCall(request).execute()
+                if (response.isSuccessful) {
+                    Either.Right(response.body?.string() ?: "nothing to show")
+                } else {
+                    Either.Left(response.message)
+                }
             }
         }.getOrElse {
             Either.Left(it.message ?: it.cause?.message ?: "unknown error")
